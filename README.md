@@ -6,8 +6,8 @@ A sample game I made on unity
 I built this project to deepen my understanding of C# programming and game physics within the Unity engine. 
 This was made for my high school capstone project 😁😁😁
 
-## Platform
-Windows Only
+### Platform
+Windows Only (sry mac)
 
 ### Technical Features
 * **Player Controller:** Custom C# script handling velocity, jump physics, and ground detection using Raycasts.
