@@ -27,7 +27,8 @@ the visual assets were sourced from the Unity Asset Store:
     * *License:* Standard Unity Asset Store EULA.
 * **Engine:** Unity 2020.3 (LTS)
 
-## Installation / How to Play (the game is not fun)
+## Installation / How to Play 
+(the game is not fun)
 1.  Clone this repository.
 2.  Open the folder in **Unity Hub**.
 3.  Open the scene in the `Assets/Scenes` folder.
