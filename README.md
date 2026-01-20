@@ -5,7 +5,7 @@ Just a sample game I made on unity
 ## About the Project
 I built this project just to learn Unity engine.\
 This was used for my high school capstone project 😁😁😁.\
-I might make changes and update it in the future if I can come up with some cool ideas, but it will be as is for now.
+I might continue on this in the future if I can come up with some cool ideas; otherwise, its only purpose is my practice.
 
 ### Platform
 Windows Only (sry mac)
