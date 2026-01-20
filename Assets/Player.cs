@@ -38,10 +38,19 @@ public class Player : MonoBehaviour
     [SerializeField] private float wallCheckWidth = 0.5f;  // Width of the box
     [SerializeField] private float wallCheckHeight = 1f;   // Height of the box
     [SerializeField] private LayerMask whatIsWall;
+
+    [Header("Ledge Detection")]
+    [SerializeField] private float topCheckY = 0.5f; 
+    [SerializeField] private float topCheckDist = 0.6f;
+    // NEW: How much force to lift the player over the ledge
+    [SerializeField] private float ledgeClimbForce = 5f;
+    
+    private bool isTouchingLedge; 
+    private bool isTouchingWall;
+
     // Offsets for the box origin
     [SerializeField] private float offsetX = 0.5f;
     [SerializeField] private float offsetY = 0f; 
-    private bool isTouchingWall;
     [SerializeField] private float wallJumpCD = 0.2f;
     private float wallJumpTimer = 0f;
 
@@ -100,43 +109,68 @@ public class Player : MonoBehaviour
     }
     private void AnimatorControllers()
     {
-        //check if it is moving/not
         bool isMoving = rb.linearVelocity.x != 0;
         animtr.SetFloat("yVelocity", rb.linearVelocity.y);
         animtr.SetBool("isMoving", isMoving);
         animtr.SetBool("isGrounded", isGrounded);
         animtr.SetBool("isDashing", dashTime > 0);
-        animtr.SetBool("isTouchingWall", isTouchingWall);
+        animtr.SetBool("isTouchingWall", isTouchingWall); 
+        animtr.SetBool("isLedgeClimbing", isTouchingLedge);
     }
     private void Movement()
     {
         if (dashTime > 0)
         {
-            rb.linearVelocity = new Vector2(facingDirection*dashSpeed, 0);
+            rb.linearVelocity = new Vector2(facingDirection * dashSpeed, 0);
+        }
+        // NEW: Ledge Climb Logic
+        // If we are at a ledge AND holding the key towards the wall
+        else if (isTouchingLedge && xInput == facingDirection)
+        {
+             // We apply movement speed (to go onto the platform) 
+             // AND a small upward force to lift the collider over the corner lip
+             rb.linearVelocity = new Vector2(facingDirection * moveSpeed, ledgeClimbForce);
         }
         else
         {
-            rb.linearVelocity = new Vector2(xInput*moveSpeed, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocity.y);
         }
-        
     }
     private void CollisionChecks()
     {
-        //ground collision check
+        // 1. Ground Check
         isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
-        //wall collision check
+
+        // 2. Wall Check (Body)
         Vector2 wallCheckCenter = new Vector2(transform.position.x + facingDirection * offsetX, transform.position.y + offsetY);
-        // Define a box to check for walls
         Collider2D wallCollider = Physics2D.OverlapBox(wallCheckCenter, new Vector2(wallCheckWidth, wallCheckHeight), 0f, whatIsWall);
-        isTouchingWall = wallCollider != null;  // True if there's a wall inside the box
+        
+        // 3. Wall Check (Head)
+        Vector2 topCheckPos = new Vector2(transform.position.x, transform.position.y + topCheckY);
+        bool isTopTouching = Physics2D.Raycast(topCheckPos, Vector2.right * facingDirection, topCheckDist, whatIsWall);
+
+        // LOGIC: 
+        // If Body hits AND Head hits = We are on a tall wall (Climb).
+        isTouchingWall = (wallCollider != null) && isTopTouching;
+
+        // If Body hits BUT Head misses = We found a Ledge/Corner.
+        isTouchingLedge = (wallCollider != null) && !isTopTouching;
     }
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red; 
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
+        
         Gizmos.color = Color.blue; 
         Vector3 boxCenter = new Vector3(transform.position.x + facingDirection * offsetX, transform.position.y + offsetY, transform.position.z);
         Gizmos.DrawWireCube(boxCenter, new Vector3(wallCheckWidth, wallCheckHeight, 0f));
+
+        // === NEW CODE START: Visualize the Top Check ===
+        Gizmos.color = Color.yellow;
+        Vector3 topCheckPos = new Vector3(transform.position.x, transform.position.y + topCheckY, transform.position.z);
+        Gizmos.DrawLine(topCheckPos, topCheckPos + Vector3.right * facingDirection * topCheckDist);
+        // === NEW CODE END ===
     }
     private void Flip()
     {
